@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="gmtsar">
+  <jobTemplates>
+    <jobTemplate id="msd">
+      <streamingExecutable>/application/msd/run</streamingExecutable>
+      <defaultParameters>
+        <parameter id="master" title="Reference to master" abstract="Reference to master product catalogue entry in RDF format">http://10.16.10.50/catalogue/sandbox/ASA_IM__0P/ASA_IM__0CNPDE20090412_092426_000000162078_00079_37207_1556.N1/rdf</parameter>
+      </defaultParameters>
+      <defaultJobconf>
+        <property id="ciop.job.max.tasks">1</property>
+        <property id="mapred.task.timeout">7200000</property>
+      </defaultJobconf>
+    </jobTemplate>
+    <jobTemplate id="gmtsar">
+      <streamingExecutable>/application/gmtsar/run</streamingExecutable>
+      <defaultParameters />
+      <defaultJobconf>
+        <property id="mapred.task.timeout">7200000</property>
+      </defaultJobconf>
+    </jobTemplate>
+  </jobTemplates>
+  <workflow id="gmtsar" title="GMTSAR interferometric processor" abstract="GMTSAR is an open source (GNU General Public License) InSAR processing system. This service provides standard 2-pass processing of a master product against one or more slave products">
+    <workflowVersion>1.0</workflowVersion>
+    <node id="msd">
+      <job id="msd" />
+      <sources>
+        <source id="slave" title="Reference to slave product(s)" abstract="Reference to slave product(s) catalogue entry in RDF format" refid="string:list" scope="runtime" />
+      </sources>
+      <parameters>
+        <parameter id="master" scope="runtime">http://10.16.10.50/catalogue/sandbox/ASA_IM__0P/ASA_IM__0CNPDE20090412_092426_000000162078_00079_37207_1556.N1/rdf</parameter>
+      </parameters>
+    </node>
+    <node id="gmtsar">
+      <job id="gmtsar" />
+      <sources>
+        <source refid="wf:node">msd</source>
+      </sources>
+      <parameters />
+    </node>
+  </workflow>
+</application>

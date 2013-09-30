@@ -1,0 +1,98 @@
+#!/bin/bash
+
+# Project:       ${project.name}
+# Author:        $Author: fbrito $ (Terradue Srl)
+# Last update:   ${doc.timestamp}:
+# Element:       ${project.name}
+# Context:       ${project.artifactId}
+# Version:       ${project.version} (${implementation.build})
+# Description:   ${project.description}
+#
+# This document is the property of Terradue and contains information directly
+# resulting from knowledge and experience of Terradue.
+# Any changes to this code is forbidden without written consent from Terradue Srl
+#
+# Contact: info@terradue.com
+# 2012-02-10 - NEST in jobConfig upgraded to version 4B-1.1
+
+# source the ciop functions (e.g. ciop-log)
+source ${ciop_job_include}
+
+export PATH=${_CIOP_APPLICATION_PATH}/msd/bin:$PATH
+
+# define the exit codes
+SUCCESS=0
+ERR_NOINPUT=1
+ERR_NODEM=2
+ERR_NOMASTER=5
+ERR_NOMASTERWKT=8
+ERR_NOMASTERFILE=10
+
+# add a trap to exit gracefully
+function cleanExit ()
+{
+   local retval=$?
+   local msg=""
+   case "$retval" in
+     $SUCCESS)      	msg="Processing successfully concluded";;
+     $ERR_NOMASTER) 	msg="Master reference not provided";;
+     $ERR_NOMASTERWKT) 	msg="Master WKT not retrieved";;
+     $ERR_NOMASTERFILE)	msg="Master not retrieved to local node";;	
+     $ERR_NODEM)    	msg="DEM not retrieved";;
+     $ERR_NOCEOS)	msg="CEOS product not retrieved";;
+     $ERR_NOSLAVEWKT)	msg="Slave WKT not retrieved";;
+     $ERR_NOSLAVEFILE) msg="Slave not retrieved to local node";;
+     *)             	msg="Unknown error";;
+   esac
+   [ "$retval" != "0" ] && ciop-log "ERROR" "Error $retval - $msg, processing aborted" || ciop-log "INFO" "$msg"
+   exit $retval
+}
+trap cleanExit EXIT
+
+# Get the master - it's always the same
+master="`ciop-getparam master`"
+[ -z "$master" ] && exit $ERR_NOMASTER 
+
+master_wkt="`ciop-casmeta -f "dct:spatial" "$master"`"
+[ -z "$master_wkt" ] && exit $ERR_NOMASTERWKT
+
+# from reference to local path
+master=`echo $master | ciop-copy -o $TMPDIR -`
+ciop-log "DEBUG" "master: $master"
+[ -z "$master" ] && exit $ERR_NOMASTERFILE
+
+master_url="`ciop-publish $master`"
+
+# get DEM
+minx=`echo -e "$master_wkt" | sed 's/MULTIPOLYGON//g' | tr -d "()" | tr ',' '\n' | cut -d " " -f 1 | sort | head -1`
+maxx=`echo -e "$master_wkt" | sed 's/MULTIPOLYGON//g' | tr -d "()" | tr ',' '\n' | cut -d " " -f 1 | sort | tail -1`
+miny=`echo -e "$master_wkt" | sed 's/MULTIPOLYGON//g' | tr -d "()" | tr ',' '\n' | cut -d " " -f 2 | sort | head -1`
+maxy=`echo -e "$master_wkt" | sed 's/MULTIPOLYGON//g' | tr -d "()" | tr ',' '\n' | cut -d " " -f 2 | sort | tail -1`
+
+# extend the bbox a few degree decimals
+minx="`echo "scale=2; $minx - 0.2" | bc`"
+maxx="`echo "scale=2; $maxx + 0.2" | bc`"
+miny="`echo "scale=2; $miny - 0.2" | bc`"
+maxy="`echo "scale=2; $maxy + 0.2" | bc`"
+
+# get the DEM from GMTSAR Web Service
+cd $TMPDIR
+ciop-log "INFO" "Retrieving DEM for $minx,$miny,$maxx,$maxy"
+getdem $minx $miny $maxx $maxy 1>&2 #&> /dev/null
+[ "$?" != "0" ] && {
+	exit $ERR_NODEM
+}
+tar --extract --file=dem.tar -O "`tar tf dem.tar | grep dem.grd`" > $TMPDIR/dem.grd
+rm -f dem.tar &> /dev/null
+
+[ ! -f $TMPDIR/dem.grd ] && exit $ERR_NODEM
+
+dem_url="`ciop-publish $TMPDIR/dem.grd`"
+
+# loop through all slaves
+while read slave 
+do
+	ciop-log "DEBUG" "$master_url,$slave,$dem_url"
+	echo "$master_url,$slave,$dem_url"	
+done
+

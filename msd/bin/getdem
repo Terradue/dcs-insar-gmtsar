@@ -1,0 +1,103 @@
+#!/bin/bash
+
+east="`echo "scale=2; $3 / 1" | bc`"
+south="`echo "scale=2; $2 / 1" | bc`"
+west="`echo "scale=2; $1 / 1" | bc`"
+north="`echo "scale=2; $4 / 1" | bc`"
+
+float_scale=2
+
+function float_eval()
+{
+    local stat=0
+    local result=0.0
+    if [[ $# -gt 0 ]]; then
+        result=$(echo "scale=$float_scale; $*" | bc -q 2>/dev/null)
+        stat=$?
+        if [[ $stat -eq 0  &&  -z "$result" ]]; then stat=1; fi
+    fi
+    echo $result
+    return $stat
+}
+
+
+function float_cond()
+{
+    local cond=0
+    if [[ $# -gt 0 ]]; then
+        cond=$(echo "$*" | bc -q 2>/dev/null)
+        if [[ -z "$cond" ]]; then cond=0; fi
+        if [[ "$cond" != 0  &&  "$cond" != 1 ]]; then cond=0; fi
+    fi
+    local stat=$((cond == 0))
+    return $stat
+}
+
+
+
+
+# check what we got
+
+if float_cond "$east < -180.0" || float_cond "$east > 180.0"; then exit 3; fi
+
+if float_cond "$west < -180.0" || float_cond "$west > 180.0"; then exit 3; fi
+
+if float_cond "$south < -90.0" || float_cond "$south > 90.0"; then exit 3; fi
+
+if float_cond "$north < -90.0" || float_cond "$north > 90.0"; then exit 3; fi
+
+if float_cond "$east > $west" ; then
+    dlon=$(float_eval "$east - $west")
+else
+   dlon=$(float_eval "$west - $east")
+fi
+
+if float_cond "$north > $south" ; then
+   dlat=$(float_eval "$north - $south")
+else
+   dlat=$(float_eval "$south - $north")
+fi
+
+if float_cond "$dlon > 2"; then exit 7; fi
+if float_cond "$dlat > 3"; then exit 8; fi
+
+# use SRTM
+demtype=2
+
+accesspoint="http://topex.ucsd.edu/cgi-bin/gmtsar/demgen/demreg.pl"
+statuspoint="http://topex.ucsd.edu/cgi-bin/gmtsar/demgen/demstat.pl"
+
+curl "$accesspoint?south=$south&north=$north&west=$west&east=$east&demtype=$demtype"  > demreq.json
+
+qid="`cat demreq.json | grep registered | cut -d ':' -f 2 | tr -d ',' | tr -d '\"'`"
+
+rm -f demreq.json
+
+[ -z "$qid" ] && exit 9 
+
+# check if it is processing
+curl "$statuspoint?qid=$qid" > status.json
+grep "Processing" status.json > /dev/null
+[ "$?" -ne "0" ] && exit 15
+
+download=""
+i=0
+
+# poll the status until there's an URL
+while [ -z "$download" ]
+do 
+   sleep 15
+   i=$(($i+1))
+   curl "$statuspoint?qid=$qid" > status.json
+   download="`cat status.json | grep resultURL | cut -d ':' -f 2- | tr -d ',' | tr -d '\"'`"
+   [ $i -eq 40 ] && break
+done
+
+rm -f status.json
+
+[ -z "$download" ] && exit 10 || curl $download > dem.tar
+
+[ -f dem.tar ] && exit 0 || exit 11
+ 
+
+
