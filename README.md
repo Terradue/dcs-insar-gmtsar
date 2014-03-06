@@ -51,12 +51,12 @@ The `msd` processing tasks are:
 With the data defined in the [application.xml](https://github.com/Terradue/InSAR-tutorials-GMTSAR/blob/master/application.xml), the processing step `msd` produces the triplets:
 
 * triplet 1
- * http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20100502_175016_000000172089_00084_42723_0354.N1/rdf
- * http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20100328_175019_000000162088_00084_42222_9504.N1/rdf 
+ * http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20090412_092426_000000162078_00079_37207_1556.N1/rdf (master)
+ * http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPAM20080427_092430_000000172068_00079_32197_3368.N1/rdf (slave 1)
  * the DEM  
 * triplet 2
- * http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20100502_175016_000000172089_00084_42723_0354.N1/rdf
- * http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20100328_175019_000000162088_00084_42222_9504.N1/rdf 
+ * http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20090412_092426_000000162078_00079_37207_1556.N1/rdf (master)
+ * http://catalogue.terradue.int/catalogue/search/ASA_IM__0CNPAM20070128_092433_000000162055_00079_25684_2263.N1/rdf (slave 2) 
  * the DEM 
 
 #### Processing step `gmtsar`
