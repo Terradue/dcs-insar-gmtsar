@@ -1,4 +1,4 @@
-# Cloud processing with Envisat ASAR data and GTMSAR
+# Cloud processing with Envisat ASAR data and GMTSAR
 
 This repository contains the application files and scripts to process a stack with one master and one or more slaves of Envisat ASAR data with [GMTSAR](http://topex.ucsd.edu/gmtsar/) an InSAR processing system based on [GMT](http://gmt.soest.hawaii.edu/) to process SAR images to create InSAR images, named interferograms.
 
