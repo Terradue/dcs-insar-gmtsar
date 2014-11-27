@@ -8,7 +8,7 @@ export GMTHOME=/usr
 export NETCDFHOME=/usr
 export GMTSARHOME=/usr/local/GMTSAR
 export GMTSAR=$GMTSARHOME/gmtsar
-export PATH=$GMTSAR/bin:$GMTSAR/csh:$GMTSARHOME/preproc/bin:$GMTSARHOME/ENVISAT_preproc/bin/:$PATH
+export PATH=$GMTSAR/bin:$GMTSAR/csh:$GMTSARHOME/preproc/bin:$GMTSARHOME/ENVISAT_preproc/bin/:$GMTSARHOME/ENVISAT_preproc/csh:$PATH
 
 # define the exit codes
 SUCCESS=0
@@ -43,14 +43,15 @@ function cleanExit ()
 }
 trap cleanExit EXIT
 
+export TMPDIR=/tmp/`uuidgen`
 # create environment
 mkdir -p $TMPDIR/runtime/raw $TMPDIR/runtime/topo $TMPDIR/runtime/log &> /dev/null
-mkdir -p $TMPDIR/aux
+mkdir -p $TMPDIR/aux/ENVI/ASA_INS
+mkdir -p $TMPDIR/aux/ENVI/Doris
 
 first="true"
 while read input
 do
-set -x
     refs=`ciop-copy -o $TMPDIR $input`
     # get the DEM for the first time
     [ "$first" == "true" ] && {
@@ -62,7 +63,7 @@ set -x
       ciop-log "DEBUG" "`tree $TMPDIR/runtime/topo`"
       first="false"
     }
-   set +x
+    
     # get the aux and orbital data
     cat $refs | egrep -v '(dem=|slave=|master=)' | while read url
     do
@@ -72,6 +73,9 @@ set -x
     done 
     
     export ORBITS=$TMPDIR/aux
+    cp $TMPDIR/aux/DOR* $TMPDIR/aux/ENVI/Doris
+    cp $TMPDIR/aux/ASA_INS* $TMPDIR/aux/ENVI/ASA_INS
+    ls $TMPDIR/aux/ASA_INS* > $TMPDIR/aux/ENVI/ASA_INS/list
 
     # get the references to master and slave
     master=`cat $refs | grep "master=" | cut -d "=" -f 2`
@@ -114,9 +118,10 @@ set -x
         	# ENVISAT ASAR in N1 format
 		ln -s $slave $TMPDIR/runtime/raw/slave.baq
 		result=`echo "${master}_${slave}" | sed 's#.*/\(.*\)\.N1_.*/\(.*\)\.N1#\1_\2#g'`
-		csh $_CIOP_APPLICATION_PATH/gmtsar/libexec/run_envi.csh & #> $TMPDIR/runtime/${result}_envi.log &
+		ciop-log "DEBUG" "`tree $TMPDIR/runtime`"
+                csh $_CIOP_APPLICATION_PATH/gmtsar/libexec/run_envi.csh & #> $TMPDIR/runtime/${result}_envi.log &
 		wait ${!}			
-
+                ciop-log "DEBUG" "`tree $TMPDIR/runtime`"
 		ciop-log "INFO" "Publishing log"
 		ciop-publish -m $TMPDIR/runtime/${result}_envi.log
 		set +x
