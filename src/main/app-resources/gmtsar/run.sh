@@ -75,7 +75,9 @@ do
     export ORBITS=$TMPDIR/aux
     cp $TMPDIR/aux/DOR* $TMPDIR/aux/ENVI/Doris
     cp $TMPDIR/aux/ASA_INS* $TMPDIR/aux/ENVI/ASA_INS
-    ls $TMPDIR/aux/ASA_INS* > $TMPDIR/aux/ENVI/ASA_INS/list
+    cd $TMPDIR/aux/ENVI/ASA_INS    
+    ls ASA_INS* > $TMPDIR/aux/ENVI/ASA_INS/list
+    cd $TMPDIR
 
     # get the references to master and slave
     master=`cat $refs | grep "master=" | cut -d "=" -f 2`
