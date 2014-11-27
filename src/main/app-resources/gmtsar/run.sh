@@ -56,45 +56,61 @@ trap cleanExit EXIT
 mkdir -p $TMPDIR/runtime/raw $TMPDIR/runtime/topo $TMPDIR/runtime/log &> /dev/null
 
 
+first="true"
 while read input
 do
-	master=`echo $input | cut -d "," -f 1`
-	slave=`echo $input | cut -d "," -f 2`
-	dem=`echo $input | cut -d "," -f 3`
+    refs=`ciop-copy -o $TMPDIR $input`
 
-	# Get the master
-	ciop-log "INFO" "Retrieve $master from archive"
+    # get the DEM or the first time
+    [ "$first" == "true" ] && {
+	 
+      dem_wps_result_xml=`cat $TMPDIR/refs | egrep -v '(aux=|vor=|slave=|master=)'`
 
-	# from reference to local path
-	master=`echo $master | ciop-copy -o $TMPDIR/runtime/raw -`
-	ciop-log "DEBUG" "master: $master"
-	[ -z "$master" ] && exit $ERR_NOMASTERFILE
+      # extract the result URL
+      ciop-log "INFO" "ciop-copy $dem_wps_result_xml | xsltproc /application/roipac/xslt/getresult.xsl - | xsltproc /application/roipac/xslt/metalink.xsl - | grep http | xargs -i curl -L -s {} -o $TMPDIR/workdir/dem/dem.tgz"
+      wps_result=`ciop-copy $dem_wps_result_xml`
 
-	cd $TMPDIR/runtime/raw
-	[[ $master == *CEOS* ]] && {
+      tgz_metalink=`cat $wps_result | xsltproc /application/roipac/xslt/getresult.xsl -`
+      curl -L -s $tgz_metalink | xsltproc /application/roipac/xslt/metalink.xsl - | grep http | xargs -i curl -L -s {} -o $TMPDIR/runtime/topo/dem.tgz
+
+      tar xzf $TMPDIR/runtime/topo/dem.tgz -C $TMPDIR/runtime/topo 
+
+      first="false"
+    }
+    
+    # get the references to master and slave
+	 master=`cat $refs | grep "master=" | cut -d "=" -f 2`
+	 slave=`cat $refs | grep "slave=" | cut -d "=" -f 2`
+	
+	 # Get the master
+	 ciop-log "INFO" "Retrieve $master from archive"
+
+	 # from reference to local path
+	 master=`echo $master | ciop-copy -o $TMPDIR/runtime/raw -`
+	 ciop-log "DEBUG" "master: $master"
+	 [ -z "$master" ] && exit $ERR_NOMASTERFILE
+
+	 cd $TMPDIR/runtime/raw
+	 [[ $master == *CEOS* ]] && {
 		# ERS2 in CEOS format
 		tar --extract --file=$master -O DAT_01.001 > master.dat
         	tar --extract --file=$master -O LEA_01.001 > master.ldr
 		[ ! -e $TMPDIR/runtime/raw/master.dat ] && exit $ERR_NOCEOS
 		[ ! -e $TMPDIR/runtime/raw/master.ldr ] && exit $ERR_NOCEOS
-	} || {
-        	# ENVISAT ASAR in N1 format
-        	ln -s $master master.baq
-	}
+	 } || {
+      # ENVISAT ASAR in N1 format
+      ln -s $master master.baq
+	 }
 
 	ciop-log "INFO" "Retrieve slave $slave from archive"
 	slave=`echo $slave | ciop-copy -o $TMPDIR/runtime/raw -`
 	[ -z "$slave" ] && exit $ERR_NOSLAVEFILE
 
-	ciop-log "INFO" "Retrieve DEM $dem from archive"
-	dem=`echo $dem | ciop-copy -o $TMPDIR/runtime/topo -`
-	[ -z "$dem" ] && exit $ERR_NODEM
-
 	ciop-log "INFO" "GMTSAR processing for slave `basename $slave`"
 	# ERS2 in CEOS format
 	[[ $slave == *CEOS* ]] && {	
 		tar --extract --file=$slave -O DAT_01.001 > $TMPDIR/runtime/raw/slave.dat
-                tar --extract --file=$slave -O LEA_01.001 > $TMPDIR/runtime/raw/slave.ldr
+      tar --extract --file=$slave -O LEA_01.001 > $TMPDIR/runtime/raw/slave.ldr
 		result=`echo "${master}_${slave}" | sed 's#.*/\(.*\)\.N1_.*/\(.*\)\.N1#\1_\2#g'`
 		csh $_CIOP_APPLICATION_PATH/gmtsar/libexec/run_ers.csh &> $TMPDIR/runtime/$(result)_ers.log
 		ciop-publish -m $TMPDIR/runtime/$(result)_ers.log
@@ -113,11 +129,6 @@ do
 	ciop-log "INFO" "result packaging"
 	
 	cd $TMPDIR/runtime/intf
-	#ciop-log "DEBUG" "`tree $TMPDIR/runtime/intf`"
-	#for res in `ls`
-	#do 
-	#	ciop-publish -m $TMPDIR/runtime/intf/$res
-	#done
 	
 	tar vcfzh $result.tgz . 1>&2 #&> /dev/null
 
@@ -133,8 +144,6 @@ do
 		cd $TMPDIR/runtime/intf
 		rm -fr *
 
-		cd $TMPDIR/runtime/topo
-		rm -f *
 	}	
 
 done
