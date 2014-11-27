@@ -1,25 +1,14 @@
 #!/bin/bash
 
-# Project:       ${project.name}
-# Author:        $Author: fbrito $ (Terradue Srl)
-# Last update:   ${doc.timestamp}:
-# Element:       ${project.name}
-# Context:       ${project.artifactId}
-# Version:       ${project.version} (${implementation.build})
-# Description:   ${project.description}
-#
-# This document is the property of Terradue and contains information directly
-# resulting from knowledge and experience of Terradue.
-# Any changes to this code is forbidden without written consent from Terradue Srl
-#
-# Contact: info@terradue.com
-# 2012-02-10 - NEST in jobConfig upgraded to version 4B-1.1
-
 # source the ciop functions (e.g. ciop-log)
 source ${ciop_job_include}
 
-export PATH=${_CIOP_APPLICATION_PATH}/gmtsar/bin:$PATH
-source ${_CIOP_APPLICATION_PATH}/GMTSAR/gmtsar_config
+export OS=`uname -p`
+export GMTHOME=/usr
+export NETCDFHOME=/usr
+export GMTSARHOME=/usr/local/GMTSAR
+export GMTSAR=$GMTSARHOME/gmtsar
+export PATH=$GMTSAR/bin:$GMTSAR/csh:$GMTSARHOME/preproc/bin:$PATH
 
 # define the exit codes
 SUCCESS=0
@@ -76,6 +65,8 @@ do
       ciop-copy -o $TMPDIR/aux `echo $url | cut -d "=" -f 2`
       [ "$?" != "0" ] && exit $ERR_AUX
     done 
+    
+    export ORBITS=$TMPDIR/aux
 
     # get the references to master and slave
     master=`cat $refs | grep "master=" | cut -d "=" -f 2`
