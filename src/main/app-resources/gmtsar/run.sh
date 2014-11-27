@@ -8,12 +8,13 @@ export GMTHOME=/usr
 export NETCDFHOME=/usr
 export GMTSARHOME=/usr/local/GMTSAR
 export GMTSAR=$GMTSARHOME/gmtsar
-export PATH=$GMTSAR/bin:$GMTSAR/csh:$GMTSARHOME/preproc/bin:$PATH
+export PATH=$GMTSAR/bin:$GMTSAR/csh:$GMTSARHOME/preproc/bin:$GMTSARHOME/ENVISAT_preproc/bin/:$PATH
 
 # define the exit codes
 SUCCESS=0
 ERR_NOINPUT=1
 ERR_NODEM=2
+ERR_AUX=3
 ERR_NOMASTER=5
 ERR_NOMASTERWKT=8
 ERR_NOMASTERFILE=10
@@ -32,6 +33,7 @@ function cleanExit ()
      $ERR_NOMASTERWKT) 	msg="Master WKT not retrieved";;
      $ERR_NOMASTERFILE)	msg="Master not retrieved to local node";;	
      $ERR_NODEM)    	msg="DEM not retrieved";;
+     $ERR_AUX)          msg="Failed to retrieve auxiliary and/or orbital data";;
      $ERR_NOCEOS)	msg="CEOS product not retrieved";;
      $ERR_NOSLAVEFILE) msg="Slave not retrieved to local node";;
      *)             	msg="Unknown error";;
@@ -48,20 +50,23 @@ mkdir -p $TMPDIR/aux
 first="true"
 while read input
 do
+set -x
     refs=`ciop-copy -o $TMPDIR $input`
     # get the DEM for the first time
     [ "$first" == "true" ] && {
-	 
-      demurl=`cat $refs | egrep -v '(aux=|vor=|slave=|master=)' | cut -d "=" -f 2`
-      echo $demurl | ciop-copy -o $TMPDIR/runtime/topo
-	
+      ciop-log "INFO" "Retrieve DEM"	 
+      demurl=`cat $refs | egrep -v '(aux=|vor=|slave=|master=)' | cut -d "=" -f 2-`
+      echo $demurl | ciop-copy -o $TMPDIR/runtime/topo -
+      	
       [ "$?" != "0" ] && exit $ERR_NODEM
+      ciop-log "DEBUG" "`tree $TMPDIR/runtime/topo`"
       first="false"
     }
-   
+   set +x
     # get the aux and orbital data
-    cat $refs | egrep -v '(dem=|slave=|master=)' | while ref url
+    cat $refs | egrep -v '(dem=|slave=|master=)' | while read url
     do
+      ciop-log "INFO" "Getting $url"
       ciop-copy -o $TMPDIR/aux `echo $url | cut -d "=" -f 2`
       [ "$?" != "0" ] && exit $ERR_AUX
     done 
@@ -74,7 +79,6 @@ do
 	
     # Get the master
     ciop-log "INFO" "Retrieve $master from archive"
-
     # from reference to local path
     master=`echo $master | ciop-copy -o $TMPDIR/runtime/raw -`
 
@@ -106,15 +110,18 @@ do
 		csh $_CIOP_APPLICATION_PATH/gmtsar/libexec/run_ers.csh &> $TMPDIR/runtime/$(result)_ers.log
 		ciop-publish -m $TMPDIR/runtime/$(result)_ers.log
 	} || { 	
-		# ENVISAT ASAR in N1 format
+		set -x
+        	# ENVISAT ASAR in N1 format
 		ln -s $slave $TMPDIR/runtime/raw/slave.baq
 		result=`echo "${master}_${slave}" | sed 's#.*/\(.*\)\.N1_.*/\(.*\)\.N1#\1_\2#g'`
-		csh $_CIOP_APPLICATION_PATH/gmtsar/libexec/run_envi.csh &> $TMPDIR/runtime/${result}_envi.log &
+		csh $_CIOP_APPLICATION_PATH/gmtsar/libexec/run_envi.csh & #> $TMPDIR/runtime/${result}_envi.log &
 		wait ${!}			
 
 		ciop-log "INFO" "Publishing log"
 		ciop-publish -m $TMPDIR/runtime/${result}_envi.log
-	}
+		set +x
+		exit 1	
+       }
 
 	# publish results and logs
 	ciop-log "INFO" "result packaging"
