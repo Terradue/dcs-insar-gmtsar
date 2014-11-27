@@ -4,7 +4,7 @@
     <jobTemplate id="aux">
       <streamingExecutable>/application/aux/run.sh</streamingExecutable>
       <defaultParameters>
-        <parameter id="master" title="Reference to master" abstract="Reference to master product catalogue entry in RDF format">http://10.16.10.50/catalogue/sandbox/ASA_IM__0P/ASA_IM__0CNPDE20090412_092426_000000162078_00079_37207_1556.N1/rdf</parameter>
+        <parameter id="Level0_ref" title="Reference to master" abstract="Reference to master product catalogue entry in RDF format">http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20090412_092426_000000162078_00079_37207_1556.N1/rdf</parameter>
       	<parameter id="aux_catalogue">http://catalogue.terradue.int/catalogue/search</parameter>
       </defaultParameters>
       <defaultJobconf>
@@ -38,10 +38,10 @@
     <node id="node_aux">
       <job id="aux" />
       <sources>
-        <source id="slave" title="Reference to slave product(s)" abstract="Reference to slave product(s) catalogue entry in RDF format" refid="string:list" scope="runtime" />
+        <source id="slave" title="Reference to slave product(s)" abstract="Reference to slave product(s) catalogue entry in RDF format" refid="string:list" scope="runtime">http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPAM20080427_092430_000000172068_00079_32197_3368.N1/rdf,http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPAM20070128_092433_000000162055_00079_25684_2263.N1/rdf</source>
       </sources>
       <parameters>
-        <parameter id="Level0_ref" scope="runtime">http://10.16.10.50/catalogue/sandbox/ASA_IM__0P/ASA_IM__0CNPDE20090412_092426_000000162078_00079_37207_1556.N1/rdf</parameter>
+        <parameter id="Level0_ref" scope="runtime">http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20090412_092426_000000162078_00079_37207_1556.N1/rdf</parameter>
       </parameters>
     </node>
     <node id="node_dem">

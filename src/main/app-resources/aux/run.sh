@@ -47,37 +47,30 @@ function getAUXref() {
   ciop-log "INFO" "startdate is $startdate"
   ciop-log "INFO" "stopdate is $stopdate"
   ciop-log "INFO" "opensearch-client -f Rdf -p time:start=$startdate -p time:end=$stopdate $ods"
-  opensearch-client -v -f Rdf -p "time:start=$startdate" -p "time:end=$stopdate" $ods
+  opensearch-client -f Rdf -p "time:start=$startdate" -p "time:end=$stopdate" $ods
 }
 
 function getAuxOrbList() {
 
    local rdf=$1
    local ods=$2
-	for aux in ASA_CON_AX ASA_INS_AX ASA_XCA_AX ASA_XCH_AX
-	do
-
-		ciop-log "INFO" "Getting a reference to $aux"
-		for url in `getAUXref $input $cat_osd_root/$aux/description`
-		do
-			ciop-log "INFO" "the url is $url"
-			#pass the aux reference to the next node
-			[ "$url" != "" ] && echo "aux="$url"" 
-    done
+  for aux in ASA_CON_AX ASA_INS_AX ASA_XCA_AX ASA_XCH_AX
+  do
+    ciop-log "INFO" "Getting a reference to $aux"
+    ref=`getAUXref $rdf $cat_osd_root/$aux/description`
+    [ "$ref" != "" ] && echo $ref | tr " " "\n" | while read ax; do echo "aux="$ax""; done
   done
   # DOR_VOR_AX
   ciop-log "INFO" "Getting a reference to DOR_VOR_AX"
-  ref=`getAUXref $input $cat_osd_root/DOR_VOR_AX/description`
-
-  [ "$ref" != "" ] && echo "vor="$ref""
-
+  ref=`getAUXref $rdf $cat_osd_root/DOR_VOR_AX/description`
+  [ "$ref" != "" ] && echo $ref | tr " " "\n" | while read vor; do echo "vor="$vor""; done
 }
-
 
 # Get the master - it's always the same
 master="`ciop-getparam Level0_ref`"
 [ -z "$master" ] && exit $ERR_NOMASTER 
 
+ciop-log "INFO" "master is: $master"
 echo "master="$master"" > $TMPDIR/joborder
 
 getAuxOrbList $master $cat_osd_root >> $TMPDIR/joborder
@@ -86,15 +79,16 @@ getAuxOrbList $master $cat_osd_root >> $TMPDIR/joborder
 i=0
 while read slave 
 do
-   cp $TMPDIR/joborder $TMPDIR/joborder_${i}.tmp
-   echo "slave="$slave"" >> $TMPDIR/joborder_${i}.tmp
+  ciop-log "INFO" "slave $slave"
+  cp $TMPDIR/joborder $TMPDIR/joborder_${i}.tmp
+  echo "slave="$slave"" >> $TMPDIR/joborder_${i}.tmp
 
-   getAuxOrbList $slave $cat_osd_root >> $TMPDIR/joborder_${i}.tmp
+  getAuxOrbList $slave $cat_osd_root >> $TMPDIR/joborder_${i}.tmp
 
-   sort -u $TMPDIR/joborder_${i}.tmp > $TMPDIR/joborder_${i}
-   ciop-publish $TMPDIR/joborder_${i}	
+  sort -u $TMPDIR/joborder_${i}.tmp > $TMPDIR/joborder_${i}
+  ciop-publish $TMPDIR/joborder_${i}	
    
-   rm -f $TMPDIR/joborder_${i}.tmp $TMPDIR/joborder_${i}
-   i++ 
+  rm -f $TMPDIR/joborder_${i}.tmp $TMPDIR/joborder_${i}
+  i=$((i+1))
 done
 
