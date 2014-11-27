@@ -54,41 +54,41 @@ trap cleanExit EXIT
 
 # create environment
 mkdir -p $TMPDIR/runtime/raw $TMPDIR/runtime/topo $TMPDIR/runtime/log &> /dev/null
-
+mkdir -p $TMPDIR/aux
 
 first="true"
 while read input
 do
     refs=`ciop-copy -o $TMPDIR $input`
-
-    # get the DEM or the first time
+    # get the DEM for the first time
     [ "$first" == "true" ] && {
 	 
-      dem_wps_result_xml=`cat $TMPDIR/refs | egrep -v '(aux=|vor=|slave=|master=)'`
-
-      # extract the result URL
-      ciop-log "INFO" "ciop-copy $dem_wps_result_xml | xsltproc /application/roipac/xslt/getresult.xsl - | xsltproc /application/roipac/xslt/metalink.xsl - | grep http | xargs -i curl -L -s {} -o $TMPDIR/workdir/dem/dem.tgz"
-      wps_result=`ciop-copy $dem_wps_result_xml`
-
-      tgz_metalink=`cat $wps_result | xsltproc /application/roipac/xslt/getresult.xsl -`
-      curl -L -s $tgz_metalink | xsltproc /application/roipac/xslt/metalink.xsl - | grep http | xargs -i curl -L -s {} -o $TMPDIR/runtime/topo/dem.tgz
-
-      tar xzf $TMPDIR/runtime/topo/dem.tgz -C $TMPDIR/runtime/topo 
-
+      demurl=`cat $refs | egrep -v '(aux=|vor=|slave=|master=)' | cut -d "=" -f 2`
+      echo $demurl | ciop-copy -o $TMPDIR/runtime/topo
+	
+      [ "$?" != "0" ] && exit $ERR_NODEM
       first="false"
     }
-    
-    # get the references to master and slave
-	 master=`cat $refs | grep "master=" | cut -d "=" -f 2`
-	 slave=`cat $refs | grep "slave=" | cut -d "=" -f 2`
-	
-	 # Get the master
-	 ciop-log "INFO" "Retrieve $master from archive"
+   
+    # get the aux and orbital data
+    cat $refs | egrep -v '(dem=|slave=|master=)' | while ref url
+    do
+      ciop-copy -o $TMPDIR/aux `echo $url | cut -d "=" -f 2`
+      [ "$?" != "0" ] && exit $ERR_AUX
+    done 
 
-	 # from reference to local path
-	 master=`echo $master | ciop-copy -o $TMPDIR/runtime/raw -`
-	 ciop-log "DEBUG" "master: $master"
-	 [ -z "$master" ] && exit $ERR_NOMASTERFILE
+    # get the references to master and slave
+    master=`cat $refs | grep "master=" | cut -d "=" -f 2`
+    slave=`cat $refs | grep "slave=" | cut -d "=" -f 2`
+	
+    # Get the master
+    ciop-log "INFO" "Retrieve $master from archive"
+
+    # from reference to local path
+    master=`echo $master | ciop-copy -o $TMPDIR/runtime/raw -`
+
+    ciop-log "DEBUG" "master: $master"
+    [ -z "$master" ] && exit $ERR_NOMASTERFILE
 
 	 cd $TMPDIR/runtime/raw
 	 [[ $master == *CEOS* ]] && {

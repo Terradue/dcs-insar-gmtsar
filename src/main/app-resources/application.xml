@@ -25,6 +25,14 @@
 		<property id="ciop.job.max.tasks">1</property>
 	  </defaultJobconf>
 	</jobTemplate>
+   <jobTemplate id="merge">
+      <streamingExecutable>/application/merge/run.sh</streamingExecutable>
+      <defaultParameters />
+      <defaultJobconf>
+        <property id="ciop.job.max.tasks">1</property>
+        <property id="mapred.task.timeout">7200000</property>
+      </defaultJobconf>
+    </jobTemplate>
     <jobTemplate id="gmtsar">
       <streamingExecutable>/application/gmtsar/run.sh</streamingExecutable>
       <defaultParameters />
@@ -51,11 +59,18 @@
 		</sources>
 		<parameters />
 	</node>
+    <node id="node_merge">
+      <job id="merge" />
+      <sources>
+        <source refid="wf:node">node_dem</source>
+        <source refid="wf:node">node_aux</source>
+      </sources>
+      <parameters />
+    </node>
     <node id="node_gmtsar">
       <job id="gmtsar" />
       <sources>
-        <source refid="wf:node">node_dem</source>
-		<source refid="wf:node">node_aux</source>
+        <source refid="wf:node">node_merge</source>
       </sources>
       <parameters />
     </node>
