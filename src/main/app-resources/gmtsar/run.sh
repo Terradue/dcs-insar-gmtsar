@@ -124,22 +124,22 @@ do
   csh $_CIOP_APPLICATION_PATH/gmtsar/libexec/run_${flag}.csh & #> $TMPDIR/runtime/${result}_envi.log &
   wait ${!}			
 
-	# publish results and logs
-	ciop-publish -m $TMPDIR/runtime/${result}_${flag}.log
-	
-	ciop-log "INFO" "result packaging"
-	cd $TMPDIR/runtime/intf
-	
-	tar -C $TMPDIR/runtime/intf -fzh $result.tgz . 
-
-	ciop-log "INFO" "publish results and logs"
-	ciop-publish -m $TMPDIR/$result.tgz
-	
-	ciop-log "INFO" "cleanup"
-	
-	[ -d "$TMPDIR" ] && {
-		rm -fr $TMPDIR/runtime/raw/*
-		rm -fr $TMPDIR/runtime/intf/*
-	}	
+  # publish results and logs
+  ciop-publish -m $TMPDIR/runtime/${result}_${flag}.log
+  
+  ciop-log "INFO" "result packaging"
+  cd $TMPDIR/runtime/intf
+  
+  tar -C $TMPDIR/runtime/intf -fzh $result.tgz . 
+  
+  ciop-log "INFO" "publish results and logs"
+  ciop-publish -m $TMPDIR/$result.tgz
+  
+  ciop-log "INFO" "cleanup"
+  
+  [ -d "$TMPDIR" ] && {
+    rm -fr $TMPDIR/runtime/raw/*
+    rm -fr $TMPDIR/runtime/intf/*
+  }	
 
 done
