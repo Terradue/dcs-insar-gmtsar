@@ -57,10 +57,12 @@ export ORBITS=$TMPDIR/aux
 while read input
 do
 	ciop-log "INFO" "retrieving $input"
-	input=`ciop-copy -o $TMPDIR $input`
+	input=`ciop-copy -O $TMPDIR $input`
 
-	demfile=$( ciop-browseresults -r $CIOP_WF_RUN_ID -j node_dem | tr -d '\n\r' )
+	#demfile=$( ciop-browseresults -r $CIOP_WF_RUN_ID -j node_dem | tr -d '\n\r' )
+	demfile=`cat $input | grep "^dem=" | cut -d "=" -f 2-`
 	ciop-log "INFO" "DEM is: $demfile [$CIOP_WF_RUN_ID]"
+
 	ciop-copy -O $TMPDIR/runtime/topo $demfile
 	[ "$?" != "0" ] && exit $ERR_NODEM
 
@@ -146,3 +148,5 @@ do
 	}	
 
 done
+
+exit $SUCCESS
