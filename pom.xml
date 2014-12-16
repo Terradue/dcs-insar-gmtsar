@@ -118,7 +118,8 @@
 						<provide>${project.artifactId}</provide>
 					</provides>
 					<requires>
-						<require>adore-t2</require>
+						<require>GMTSAR</require>
+						<require>snaphu</require>
 					</requires>
 					<needarch>true</needarch>
 				</configuration>

@@ -2,4 +2,4 @@
 
 cd $TMPDIR/runtime
 
-p2p_ENVI.csh master slave /usr/local/GMTSAR/gmtsar/csh/config.envi.txt
+p2p_ENVI.csh master slave /application/gmtsar/etc/config.envi.txt
