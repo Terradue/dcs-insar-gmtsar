@@ -1,78 +1,62 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="gmtsar">
-  <jobTemplates>
-    <jobTemplate id="aux">
-      <streamingExecutable>/application/aux/run.sh</streamingExecutable>
-      <defaultParameters>
-        <parameter id="Level0_ref" title="Reference to master" abstract="Reference to master product catalogue entry in RDF format">http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20090412_092426_000000162078_00079_37207_1556.N1/rdf</parameter>
-      	<parameter id="aux_catalogue">http://catalogue.terradue.int/catalogue/search</parameter>
-      </defaultParameters>
-      <defaultJobconf>
-        <property id="ciop.job.max.tasks">1</property>
-        <property id="mapred.task.timeout">7200000</property>
-      </defaultJobconf>
-    </jobTemplate>
-    <jobTemplate id="dem" jobType="wps_client">
-		<defaultParameters>
-			<parameter id="format">gmtsar</parameter>
-		</defaultParameters>
-		<defaultJobconf>
-		<property id="ogc.wps.access.point">http://dem.terradue.int:8080/wps/WebProcessingService</property>
-		<property id="ogc.wps.process.identifier">com.terradue.wps_oozie.process.OozieAbstractAlgorithm</property>
-		<property id="ogc.wps.storeExecuteResponse">true</property>
-		<property id="ogc.wps.status">true</property>
-		<property id="mapred.task.timeout">9900000000</property>
-		<property id="ciop.job.max.tasks">1</property>
-	  </defaultJobconf>
-	</jobTemplate>
-   <jobTemplate id="merge">
-      <streamingExecutable>/application/merge/run.sh</streamingExecutable>
-      <defaultParameters />
-      <defaultJobconf>
-        <property id="ciop.job.max.tasks">1</property>
-        <property id="mapred.task.timeout">7200000</property>
-      </defaultJobconf>
-    </jobTemplate>
-    <jobTemplate id="gmtsar">
-      <streamingExecutable>/application/gmtsar/run.sh</streamingExecutable>
-      <defaultParameters />
-      <defaultJobconf>
-        <property id="mapred.task.timeout">7200000</property>
-      </defaultJobconf>
-    </jobTemplate>
-  </jobTemplates>
-  <workflow id="gmtsar" title="GMTSAR interferometric processor" abstract="GMTSAR is an open source (GNU General Public License) InSAR processing system. This service provides standard 2-pass processing of a master product against one or more slave products">
-    <workflowVersion>1.0</workflowVersion>
-    <node id="node_aux">
-      <job id="aux" />
-      <sources>
-        <source id="slave" title="Reference to slave product(s)" abstract="Reference to slave product(s) catalogue entry in RDF format" refid="string:list" scope="runtime">http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPAM20080427_092430_000000172068_00079_32197_3368.N1/rdf,http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPAM20070128_092433_000000162055_00079_25684_2263.N1/rdf</source>
-      </sources>
-      <parameters>
-        <parameter id="Level0_ref" scope="runtime">http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20090412_092426_000000162078_00079_37207_1556.N1/rdf</parameter>
-      </parameters>
-    </node>
-    <node id="node_dem">
-		<job id="dem"/>
-		<sources>
-		<source id="Level0_ref" title="ASAR master product catalogue entry in RDF format" abstract="ASAR master product passed by reference to catalogue entries in RDF format" refid="string:list" scope="runtime">http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20100328_175019_000000162088_00084_42222_9504.N1/rdf</source>
-		</sources>
-		<parameters />
-	</node>
-    <node id="node_merge">
-      <job id="merge" />
-      <sources>
-        <source refid="wf:node">node_dem</source>
-        <source refid="wf:node">node_aux</source>
-      </sources>
-      <parameters />
-    </node>
-    <node id="node_gmtsar">
-      <job id="gmtsar" />
-      <sources>
-        <source refid="wf:node">node_merge</source>
-      </sources>
-      <parameters />
-    </node>
-  </workflow>
+	<jobTemplates>
+		<jobTemplate id="aux">
+			<streamingExecutable>/application/aux/run.sh</streamingExecutable>
+			<defaultParameters>
+				<parameter id="Level0_ref" title="Reference to master" abstract="Reference to master product catalogue entry in RDF format">http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20090412_092426_000000162078_00079_37207_1556.N1/rdf</parameter>
+				<parameter id="aux_catalogue">http://catalogue.terradue.int/catalogue/search</parameter>
+			</defaultParameters>
+			<defaultJobconf>
+				<property id="ciop.job.max.tasks">1</property>
+				<property id="mapred.task.timeout">7200000</property>
+			</defaultJobconf>
+		</jobTemplate>
+		<jobTemplate id="dem" jobType="wps_client">
+			<defaultParameters>
+				<parameter id="format">gmtsar</parameter>
+			</defaultParameters>
+			<defaultJobconf>
+				<property id="ogc.wps.access.point">http://dem.terradue.int:8080/wps/WebProcessingService</property>
+				<property id="ogc.wps.process.identifier">com.terradue.wps_oozie.process.OozieAbstractAlgorithm</property>
+				<property id="ogc.wps.storeExecuteResponse">true</property>
+				<property id="ogc.wps.status">true</property>
+				<property id="mapred.task.timeout">9900000000</property>
+				<property id="ciop.job.max.tasks">1</property>
+			</defaultJobconf>
+		</jobTemplate>
+		<jobTemplate id="gmtsar">
+			<streamingExecutable>/application/gmtsar/run.sh</streamingExecutable>
+			<defaultParameters/>
+			<defaultJobconf>
+				<property id="mapred.task.timeout">7200000</property>
+			</defaultJobconf>
+		</jobTemplate>
+	</jobTemplates>
+	<workflow id="gmtsar" title="GMTSAR interferometric processor" abstract="GMTSAR is an open source (GNU General Public License) InSAR processing system. This service provides standard 2-pass processing of a master product against one or more slave products">
+		<workflowVersion>1.0</workflowVersion>
+		<node id="node_aux">
+			<job id="aux"/>
+			<sources>
+				<source id="slave" title="Reference to slave product(s)" abstract="Reference to slave product(s) catalogue entry in RDF format" refid="string:list" scope="runtime">http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPAM20080427_092430_000000172068_00079_32197_3368.N1/rdf,http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPAM20070128_092433_000000162055_00079_25684_2263.N1/rdf</source>
+			</sources>
+			<parameters>
+				<parameter id="Level0_ref" scope="runtime">http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20100328_175019_000000162088_00084_42222_9504.N1/rdf</parameter>
+			</parameters>
+		</node>
+		<node id="node_dem">
+			<job id="dem"/>
+			<sources>
+				<source id="Level0_ref" title="ASAR master product catalogue entry in RDF format" abstract="ASAR master product passed by reference to catalogue entries in RDF format" refid="string:list" scope="runtime">http://eo-virtual-archive4.esa.int/search/ASA_IM__0P/ASA_IM__0CNPDE20100328_175004_000000162088_00084_42222_9504.N1/rdf</source>
+			</sources>
+			<parameters/>
+		</node>
+		<node id="node_gmtsar">
+			<job id="gmtsar"/>
+			<sources>
+				<source refid="wf:node">node_aux</source>
+			</sources>
+			<parameters/>
+		</node>
+	</workflow>
 </application>
