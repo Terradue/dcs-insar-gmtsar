@@ -120,6 +120,8 @@
 					<requires>
 						<require>GMTSAR</require>
 						<require>snaphu</require>
+						<require>GMT-coastlines-full</require>
+						<require>GMT-coastlines-high</require>
 					</requires>
 					<needarch>true</needarch>
 				</configuration>

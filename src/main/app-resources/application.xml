@@ -46,7 +46,7 @@
 		<node id="node_aux">
 			<job id="aux"/>
 			<sources>
-				<source id="slave" title="Reference to slave product(s)" abstract="Reference to slave product(s) catalogue entry in RDF format" refid="string:list" scope="runtime">http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPAM20080427_092430_000000172068_00079_32197_3368.N1/rdf,http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPAM20070128_092433_000000162055_00079_25684_2263.N1/rdf</source>
+				<source id="slave" title="Reference to slave product(s)" abstract="Reference to slave product(s) catalogue entry in RDF format" refid="string:list" scope="runtime">http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20100502_175016_000000172089_00084_42723_0354.N1/rdf</source>
 			</sources>
 			<parameters>
 				<parameter id="Level0_ref" scope="runtime">http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20100328_175019_000000162088_00084_42222_9504.N1/rdf</parameter>
