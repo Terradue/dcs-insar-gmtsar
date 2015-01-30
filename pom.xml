@@ -8,7 +8,7 @@
 	<packaging>rpm</packaging>
 	<name>InSAR-GMTSAR</name>
 	<description>InSAR-GMTSAR</description>
-	<version>0.1-SNAPSHOT</version>
+	<version>1.0</version>
 
 	<scm>
 		<connection>scm:git:git@github.com:Terradue/InSAR-GMTSAR.git</connection>
