@@ -133,12 +133,23 @@ do
 	ciop-publish -m $TMPDIR/runtime/${result}_${flag}.log
 	
 	ciop-log "INFO" "result packaging"
+	mydir=$( ls $TMPDIR/runtime/intf/ | sed 's#.*/\(.*\)#\1#g' )
+
+	ciop-log "DEBUG" "outputfolder is: $TMPDIR/runtime/intf + $mydir"
+
+	cd $TMPDIR/runtime/intf/$mydir
+
+	#creates the tiff files
+	for mygrd in `ls *ll.grd`; do gdal_translate $mygrd `echo $mygrd | sed 's#\.grd#.tiff#g'`; done
+	for mygrd in `ls *.grd`; do gzip -9 $mygrd; done
+        
 	cd $TMPDIR/runtime/intf
 
-	for mydir in `ls`; do tar cvfz ${mydir}.tgz ${mydir}/*.png ${mydir}/*.grd ${mydir}/*.ps; done
-	
 	ciop-log "INFO" "publishing results"
-	ciop-publish -m $TMPDIR/runtime/intf/*.tgz
+	for myext in `echo "png ps gz tiff"`
+	do
+		ciop-publish -b $TMPDIR/runtime/intf -m ${mydir}/*.$myext
+	done
 	
 	ciop-log "INFO" "cleanup"
 	
