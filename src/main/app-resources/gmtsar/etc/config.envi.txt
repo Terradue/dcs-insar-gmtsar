@@ -81,7 +81,7 @@ dec_factor = 1
 #####################################
 # correlation threshold for snaphu.csh (0~1)
 # set it to be 0 to skip unwrapping.
-threshold_snaphu = 0.5
+threshold_snaphu = 0
 
 # region to unwrap in radar coordinates (leave it blank if unwrap the whole region)
 # example 300/5900/0/25000
