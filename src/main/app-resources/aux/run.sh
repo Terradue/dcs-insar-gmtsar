@@ -12,6 +12,9 @@ ERR_NODEM=2
 ERR_NOMASTER=5
 ERR_NOMASTERWKT=8
 ERR_NOMASTERFILE=10
+ERR_NOSTARTDATE=12
+ERR_NOSTOPDATE=14
+ERR_NOAUX=16
 
 # add a trap to exit gracefully
 function cleanExit ()
@@ -26,7 +29,10 @@ function cleanExit ()
      $ERR_NODEM)    	msg="DEM not retrieved";;
      $ERR_NOCEOS)	msg="CEOS product not retrieved";;
      $ERR_NOSLAVEWKT)	msg="Slave WKT not retrieved";;
-     $ERR_NOSLAVEFILE) msg="Slave not retrieved to local node";;
+     $ERR_NOSLAVEFILE)  msg="Slave not retrieved to local node";;
+     $ERR_NOSTARTDATE)	msg="Startdate not retrieved";;
+     $ERR_NOSTOPDATE)   msg="Stopdate not retrieved";;
+     $ERR_NOAUX)	msg="Error getting a reference to DOR_VOR_AX";;
      *)             	msg="Unknown error";;
    esac
    [ "$retval" != "0" ] && ciop-log "ERROR" "Error $retval - $msg, processing aborted" || ciop-log "INFO" "$msg"
@@ -42,8 +48,10 @@ function getAUXref() {
   local ods=$2
   ciop-log "INFO" "rdf is $rdf"
   ciop-log "INFO" "ods is $ods"
-  startdate="`ciop-casmeta -f "ical:dtstart" $rdf | tr -d "Z"`"
-  stopdate="`ciop-casmeta -f "ical:dtend" $rdf | tr -d "Z"`"
+  startdate=`opensearch-client $rdf startdate | tr -d "Z"`
+  [ -z "$startdate" ] && exit $ERR_NOSTARTDATE
+  stopdate=`opensearch-client $rdf enddate | tr -d "Z"`
+  [ -z "$stopdate" ] && exit $ERR_NOSTOPDATE
   ciop-log "INFO" "startdate is $startdate"
   ciop-log "INFO" "stopdate is $stopdate"
   ciop-log "INFO" "opensearch-client -f Rdf -p time:start=$startdate -p time:end=$stopdate $ods"
@@ -63,6 +71,8 @@ function getAuxOrbList() {
   # DOR_VOR_AX
   ciop-log "INFO" "Getting a reference to DOR_VOR_AX"
   ref=`getAUXref $rdf $cat_osd_root/DOR_VOR_AX/description`
+  res=$?
+  [ $res -ne 0 ] && return $ERR_NOAUX
   [ "$ref" != "" ] && echo $ref | tr " " "\n" | while read vor; do echo "vor="$vor""; done
 }
 
