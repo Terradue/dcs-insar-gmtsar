@@ -66,13 +66,15 @@ function getAuxOrbList() {
   do
     ciop-log "INFO" "Getting a reference to $aux"
     ref=`getAUXref $rdf $cat_osd_root/$aux/description`
+    res=$?
+    [ $res -ne 0 ] && return $res
     [ "$ref" != "" ] && echo $ref | tr " " "\n" | while read ax; do echo "aux="$ax""; done
   done
   # DOR_VOR_AX
   ciop-log "INFO" "Getting a reference to DOR_VOR_AX"
   ref=`getAUXref $rdf $cat_osd_root/DOR_VOR_AX/description`
   res=$?
-  [ $res -ne 0 ] && return $ERR_NOAUX
+  [ $res -ne 0 ] && return $res
   [ "$ref" != "" ] && echo $ref | tr " " "\n" | while read vor; do echo "vor="$vor""; done
 }
 
@@ -84,7 +86,8 @@ ciop-log "INFO" "master is: $master"
 echo "master="$master"" > $TMPDIR/joborder
 
 getAuxOrbList $master $cat_osd_root >> $TMPDIR/joborder
-
+res=$?
+[ $res -ne 0 ] && exit $res
 # loop through all slaves
 i=0
 while read slave 
@@ -94,7 +97,8 @@ do
   echo "slave="$slave"" >> $TMPDIR/joborder_${i}.tmp
 
   getAuxOrbList $slave $cat_osd_root >> $TMPDIR/joborder_${i}.tmp
-
+  res=$?
+  [ $res -ne 0 ] && exit $res
   sort -u $TMPDIR/joborder_${i}.tmp > $TMPDIR/joborder_${i}
   ciop-publish $TMPDIR/joborder_${i}	
    
