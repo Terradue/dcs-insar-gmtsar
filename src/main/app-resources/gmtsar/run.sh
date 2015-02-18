@@ -94,7 +94,9 @@ do
 	
 	# Get the master
 	ciop-log "INFO" "retrieving the master from $master"
+	master=$( opensearch-client "$master" enclosure | tail -1 )
 	master=`ciop-copy -O $TMPDIR/runtime/raw $master`
+	
 	[ -z "$master" ] && exit $ERR_NOMASTERFILE
 
 	[[ $master == *CEOS* ]] && {
@@ -109,6 +111,7 @@ do
 	}
 
 	ciop-log "INFO" "retrieving the slave from $slave"
+	slave=$( opensearch-client "$slave" enclosure | tail -1 )
 	slave=`ciop-copy -O $TMPDIR/runtime/raw $slave`
 	[ -z "$slave" ] && exit $ERR_NOSLAVEFILE
 

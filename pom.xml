@@ -8,7 +8,7 @@
 	<packaging>rpm</packaging>
 	<name>InSAR-GMTSAR</name>
 	<description>InSAR-GMTSAR</description>
-	<version>1.0</version>
+	<version>1.1</version>
 
 	<scm>
 		<connection>scm:git:git@github.com:Terradue/InSAR-GMTSAR.git</connection>
@@ -114,6 +114,22 @@
 								</source>
 							</sources>
 						</mapping>
+						<mapping>
+							<directory>/application</directory>
+							<sources>
+								<source>
+									<location>${basedir}/src/main/app-resources</location>
+									<includes>
+										<include>**/run</include>
+										<include>**/run.R</include>
+										<include>**/bin/*</include>
+										<include>**/*.sh</include>
+										<include>**/libexec/*</include>
+									</includes>
+								</source>
+							</sources>
+							<filemode>775</filemode>
+						</mapping>
 					</mappings>
 					<provides>
 						<provide>${project.artifactId}</provide>
@@ -121,6 +137,7 @@
 					<requires>
 						<require>GMTSAR</require>
 						<require>snaphu</require>
+						<require>tcsh</require>
 						<require>GMT-coastlines-full</require>
 						<require>GMT-coastlines-high</require>
 					</requires>
