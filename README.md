@@ -66,7 +66,6 @@ Or invoke the Web Processing Service via the Sandbox dashboard or the [Geohazard
 * http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPDE20090412_092426_000000162078_00079_37207_1556.N1/rdf (master)
 * http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPAM20080427_092430_000000172068_00079_32197_3368.N1/rdf (slave 1)
 * http://catalogue.terradue.int/catalogue/search/ASA_IM__0P/ASA_IM__0CNPAM20070128_092433_000000162055_00079_25684_2263.N1/rdf (slave 2)
-* 
 
 To learn more and find information go to 
 
